@@ -12,3 +12,5 @@ This project has many objectivs:
 - Tensorflow
 
 ## For do this project
+
+We need to complete the **[TODO](https://)** list.
