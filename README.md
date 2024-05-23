@@ -7,4 +7,8 @@ This project has many objectivs:
 - To create a strong IA community. 
 - To do grow up the ia world.
 
+## Technologies used for the project 
+- .Net 7/8 with C#
+- Tensorflow
+
 ## For do this project
