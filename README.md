@@ -13,4 +13,4 @@ This project has many objectivs:
 
 ## For do this project
 
-We need to complete the **[TODO](https://github.com/S0dlive/OAINet/TODO.md)** list.
+We need to complete the **[TODO](https://github.com/S0dlive/OAINet/tree/master/TODO.md)** list.
