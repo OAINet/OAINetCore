@@ -2,11 +2,11 @@ using Microsoft.Extensions.Logging;
 
 namespace OAINet.Node.Network;
 
-public class Server
+public class Node
 {
-    private readonly ILogger<Server> _logger;
+    private readonly ILogger<Node> _logger;
 
-    public Server(ILogger<Server> logger)
+    public Node(ILogger<Node> logger)
     {
         _logger = logger;
     }
