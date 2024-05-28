@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Nethermind.Libp2p.Core;
 using Nethermind.Libp2p.Stack;
@@ -12,6 +13,7 @@ public class Node
 {
     private readonly ILogger<Node> _logger;
     private Peer _peer;
+    private List<TcpClient> _connectedPeers;
 
     public Node(ILogger<Node> logger)
     {
@@ -25,6 +27,7 @@ public class Node
         _peer = new Peer(new TcpClient(),
             new TcpListener(IPAddress.Any, 3024));
         _peer.TcpListener.Start();
+        _connectedPeers = new List<TcpClient>();
         _logger.LogInformation("server is waiting external connexion. . .");
 
         while (true)
@@ -32,6 +35,7 @@ public class Node
             try
             {
                 var client = await _peer.TcpListener.AcceptTcpClientAsync();
+                _connectedPeers.Add(client);
             }
             catch (Exception e)
             {
