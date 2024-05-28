@@ -36,6 +36,7 @@ public class Node
             {
                 var client = await _peer.TcpListener.AcceptTcpClientAsync();
                 _connectedPeers.Add(client);
+                _ = HandleClientAsync(client);
             }
             catch (Exception e)
             {
@@ -49,5 +50,10 @@ public class Node
             }
         }
         Console.ReadKey();
+    }
+
+    private async Task HandleClientAsync(TcpClient client)
+    {
+        throw new NotImplementedException();
     }
 }
