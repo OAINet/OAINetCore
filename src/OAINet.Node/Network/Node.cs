@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using OAINet.Node.RequestHandler;
 
 namespace OAINet.Node.Network;
 
@@ -21,7 +22,17 @@ public class Node
         _logger = logger;
         
     }
+    private void RegisterHandlers()
+    {
+        var methods = this.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Where(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0);
 
+        foreach (var method in methods)
+        {
+            var attr = (OAINetHandlerAttribute)method.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).First();
+            handlers.Add(attr.Route.ToLower(), method);
+        }
+    }
     public async Task RunNode()
     {
         _logger.LogInformation("server is preparing to run");
