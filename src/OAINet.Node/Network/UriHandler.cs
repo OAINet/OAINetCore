@@ -24,7 +24,7 @@ public class UriHandler
         PeerAddress = parts[0];
         Command = parts[1];
     }
-
+    
     public override string ToString()
     {
         return $"Protocol: oainet, PeerAddress: {PeerAddress}, Command: {Command}";

@@ -16,21 +16,28 @@ public class Node
     private readonly ILogger<Node> _logger;
     private Peer _peer;
     private List<ExternalPeer> _connectedPeers;
-    private Dictionary<string, MethodInfo> handlers = new Dictionary<string, MethodInfo>();
+    private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
     public Node(ILogger<Node> logger)
     {
         _logger = logger;
-        
+        RegisterHandlers();
     }
     private void RegisterHandlers()
     {
-        var methods = this.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-            .Where(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0);
+        var handlerTypes = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                .Any(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0));
 
-        foreach (var method in methods)
+        foreach (var type in handlerTypes)
         {
-            var attr = (OAINetHandlerAttribute)method.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).First();
-            handlers.Add(attr.Route.ToLower(), method);
+            var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0);
+
+            foreach (var method in methods)
+            {
+                var attr = (OAINetHandlerAttribute)method.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).First();
+                handlers.Add(attr.Route.ToLower(), (type, method));
+            }
         }
     }
     public async Task RunNode()
@@ -75,6 +82,8 @@ public class Node
         {
             var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             _logger.LogInformation("Received message: " + message);
+            var response = await HandleUriAsync(message);
+            await SendStringToAClientAsync(externalPeer, response);
         }
 
         await SendStringToAClientAsync(externalPeer, "bye");
@@ -83,7 +92,30 @@ public class Node
         
         externalPeer.Client.Close();
     }
+    private async Task<string> HandleUriAsync(string uri)
+    {
+        try
+        {
+            var uriHandler = new UriHandler(uri);
+            Console.WriteLine(uriHandler.ToString());
 
+            if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
+            {
+                var (type, method) = handlerInfo;
+                var instance = Activator.CreateInstance(type);
+                var response = (string)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
+                return response;
+            }
+            else
+            {
+                return "Unknown command";
+            }
+        }
+        catch (Exception ex)
+        {
+            return "Error handling URI: " + ex.Message;
+        }
+    }
     private async Task SendStringToAClientAsync(ExternalPeer peer, string message)
     {
         var stream = peer.Client.GetStream();
