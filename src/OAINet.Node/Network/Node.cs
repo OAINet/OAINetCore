@@ -2,8 +2,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Nethermind.Libp2p.Core;
-using Nethermind.Libp2p.Stack;
 
 namespace OAINet.Node.Network;
 

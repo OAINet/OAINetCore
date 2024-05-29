@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Nethermind.Libp2p.Stack;
 using OAINet.Node.Network;
 
 public static class Program
