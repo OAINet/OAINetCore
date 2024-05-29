@@ -9,11 +9,13 @@ namespace OAINet.Node.Network;
 
 public record Peer(TcpClient TcpClient, TcpListener TcpListener);
 
+public record ExternalPeer(string Id, TcpClient Client);
+
 public class Node
 {
     private readonly ILogger<Node> _logger;
     private Peer _peer;
-    private List<TcpClient> _connectedPeers;
+    private List<ExternalPeer> _connectedPeers;
 
     public Node(ILogger<Node> logger)
     {
@@ -27,7 +29,7 @@ public class Node
         _peer = new Peer(new TcpClient(),
             new TcpListener(IPAddress.Any, 3024));
         _peer.TcpListener.Start();
-        _connectedPeers = new List<TcpClient>();
+        _connectedPeers = new List<ExternalPeer>();
         _logger.LogInformation("server is waiting external connexion. . .");
 
         while (true)
@@ -35,8 +37,9 @@ public class Node
             try
             {
                 var client = await _peer.TcpListener.AcceptTcpClientAsync();
-                _connectedPeers.Add(client);
-                _ = HandleClientAsync(client);
+                var externalPeer = new ExternalPeer(Guid.NewGuid().ToString(), client);
+                _connectedPeers.Add(externalPeer);
+                _ = HandleClientAsync(externalPeer);
             }
             catch (Exception e)
             {
@@ -52,8 +55,29 @@ public class Node
         Console.ReadKey();
     }
 
-    private async Task HandleClientAsync(TcpClient client)
+    private async Task HandleClientAsync(ExternalPeer externalPeer)
     {
-        throw new NotImplementedException();
+        var stream = externalPeer.Client.GetStream();
+        var buffer = new byte[1024];
+
+        int bytesRead;
+        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+        {
+            var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            _logger.LogInformation("Received message: " + message);
+        }
+
+        await SendStringToAClientAsync(externalPeer, "bye");
+        _connectedPeers.Remove(externalPeer);
+        _logger.LogWarning($"{externalPeer} has left.");
+        
+        externalPeer.Client.Close();
+    }
+
+    private async Task SendStringToAClientAsync(ExternalPeer peer, string message)
+    {
+        var stream = peer.Client.GetStream();
+        var buffer = Encoding.UTF8.GetBytes(message);
+        await stream.WriteAsync(buffer, 0, buffer.Length);
     }
 }
