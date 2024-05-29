@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
@@ -14,7 +15,7 @@ public class Node
     private readonly ILogger<Node> _logger;
     private Peer _peer;
     private List<ExternalPeer> _connectedPeers;
-
+    private Dictionary<string, MethodInfo> handlers = new Dictionary<string, MethodInfo>();
     public Node(ILogger<Node> logger)
     {
         _logger = logger;
