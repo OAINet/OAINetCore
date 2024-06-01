@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OAINet.Node.Blockchain;
 using OAINet.Node.Network;
 
 public static class Program
@@ -8,6 +9,7 @@ public static class Program
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<Node>();
+        serviceCollection.AddSingleton<Blockchain>();
         serviceCollection.AddLogging(configure => configure.AddConsole())
             .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
         var builder = serviceCollection.BuildServiceProvider();
