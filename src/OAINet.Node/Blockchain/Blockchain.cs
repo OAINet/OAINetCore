@@ -1,4 +1,6 @@
+using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
+using Microsoft.Extensions.Logging;
 
 namespace OAINet.Node.Blockchain;
 
@@ -6,6 +8,13 @@ namespace OAINet.Node.Blockchain;
 public class Blockchain : IBlockchain
 {
     private List<Block> pucher = new List<Block>();
+    private readonly ILogger<Blockchain> _logger;
+
+    public Blockchain(
+        ILogger<Blockchain> logger)
+    {
+        _logger = logger;
+    }
     public Block AddBlock(Block block)
     {
         throw new NotImplementedException();
@@ -15,7 +24,27 @@ public class Blockchain : IBlockchain
     {
         throw new NotImplementedException();
     }
-    
+
+    public List<Block> GetStaticBlockchain()
+    {
+        if (!File.Exists("blockchain.bin"))
+        {
+            _logger.LogError("blockchain.bin is missing.");
+            SaveBlockchain();
+            GetStaticBlockchain();
+        }
+
+        using (var stream = File.Open("blockchain.bin", FileMode.Open))
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public List<Block> GetStaticBlockchain(int indexStart, int indexStop)
+    {
+        throw new NotImplementedException();
+    }
+
     private void SaveBlockchain()
     {
         if (File.Exists("blockchain.bin"))
@@ -49,10 +78,13 @@ public class Blockchain : IBlockchain
             CreatedAt = DateTime.Now
         };
     }
+    
 }
 
 public interface IBlockchain
 {
     public Block AddBlock(Block block);
     public bool CheckIntegrity(List<Block> blockSample);
+    public List<Block> GetStaticBlockchain();
+    public List<Block> GetStaticBlockchain(int indexStart, int indexStop);
 }
