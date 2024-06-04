@@ -76,7 +76,7 @@ public class Node
     {
         var stream = externalPeer.Client.GetStream();
         var buffer = new byte[1024];
-
+        
         int bytesRead;
         while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
         {
@@ -92,6 +92,12 @@ public class Node
         
         externalPeer.Client.Close();
     }
+
+    private async Task CreateConnectionWithPeer()
+    {
+        throw new NotImplementedException();
+    }
+    
     private async Task<string> HandleUriAsync(string uri)
     {
         try
