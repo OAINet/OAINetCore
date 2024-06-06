@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using OAINet.Node.RequestHandler;
+using OAINet.Node.Services.Blockchain;
 
 namespace OAINet.Node.Network;
 
@@ -17,9 +18,12 @@ public class Node
     private Peer _peer;
     private List<ExternalPeer> _connectedPeers;
     private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
-    public Node(ILogger<Node> logger)
+    private readonly WalletService _walletService;
+    public Node(ILogger<Node> logger,
+        WalletService walletService)
     {
         _logger = logger;
+        _walletService = walletService;
         RegisterHandlers();
     }
     private void RegisterHandlers()
@@ -47,8 +51,9 @@ public class Node
             new TcpListener(IPAddress.Any, 3024));
         _peer.TcpListener.Start();
         _connectedPeers = new List<ExternalPeer>();
-        _logger.LogInformation("server is waiting external connexion. . .");
-
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        var ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+        _logger.LogInformation("server is waiting external connexion in " + ipAddress.ToString());
         while (true)
         {
             try
@@ -76,7 +81,8 @@ public class Node
     {
         var stream = externalPeer.Client.GetStream();
         var buffer = new byte[1024];
-        
+        var remoteEndPoint = externalPeer.Client.Client.RemoteEndPoint as IPEndPoint;
+        _logger.LogInformation($"client from {remoteEndPoint.Address.ToString()} is connected"); 
         int bytesRead;
         while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
         {
@@ -92,11 +98,7 @@ public class Node
         
         externalPeer.Client.Close();
     }
-
-    private async Task CreateConnectionWithPeer()
-    {
-        throw new NotImplementedException();
-    }
+    
     
     private async Task<string> HandleUriAsync(string uri)
     {
