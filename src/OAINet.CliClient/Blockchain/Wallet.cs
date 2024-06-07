@@ -1,7 +1,6 @@
+namespace OAINet.CliClient.Blockchain;
 using System.Security.Cryptography;
 using System.Text;
-
-namespace OAINet.Node.Blockchain;
 
 public class Wallet
 {
@@ -39,6 +38,30 @@ public class Wallet
             ecdsa.ImportECPrivateKey(Convert.FromBase64String(PrivateKey), out _);
             var hash = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(data));
             return Convert.ToBase64String(ecdsa.SignHash(hash)); 
+        }
+    }
+    
+    public Transaction CreateTransaction(string recipientPublicKey, decimal amount)
+    {
+        var transaction = new Transaction
+        {
+            SenderPublicKey = this.PublicKey,
+            RecipientPublicKey = recipientPublicKey,
+            Amount = amount
+        };
+
+        transaction.Signature = SignTransaction(transaction);
+        return transaction;
+    }
+
+    private string SignTransaction(Transaction transaction)
+    {
+        var transactionData = $"{transaction.SenderPublicKey}:{transaction.RecipientPublicKey}:{transaction.Amount}";
+        using (var rsa = new RSACryptoServiceProvider())
+        {
+            rsa.ImportRSAPrivateKey(Convert.FromBase64String(this.PrivateKey), out _);
+            var signedBytes = rsa.SignData(Encoding.UTF8.GetBytes(transactionData), CryptoConfig.MapNameToOID("SHA256"));
+            return Convert.ToBase64String(signedBytes);
         }
     }
 }
