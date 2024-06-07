@@ -25,18 +25,13 @@ public class Block
 
 public abstract class BaseContentType
 {
-    public string OwnerPK { get; set; }
 }
 
 public class SimpleContentType : BaseContentType;
 
-public class WalletContentType : BaseContentType
-{
-    public decimal CoinSold { get; set; }
-}
-
 public class TransactionContentType : BaseContentType
 {
+    public string TransactionHash { get; set; }
     public string AudiencePK { get; set; }
     public decimal TransactionSold { get; set; }
 }

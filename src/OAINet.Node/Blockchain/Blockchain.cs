@@ -1,91 +1,140 @@
-using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace OAINet.Node.Blockchain;
-
-
-public class Blockchain : IBlockchain
+namespace OAINet.Node.Blockchain
 {
-    private List<Block> pucher = new List<Block>();
-    private readonly ILogger<Blockchain> _logger;
+    public class Blockchain : IBlockchain
+    {
+        private readonly ILogger<Blockchain> _logger;
+        private List<Block> _blockchain;
+        private List<Block> _pendingBlocks;
 
-    public Blockchain(
-        ILogger<Blockchain> logger)
-    {
-        _logger = logger;
-    }
-    public Block AddBlock(Block block)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool CheckIntegrity(List<Block> blockSample)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<Block> GetStaticBlockchain()
-    {
-        if (!File.Exists("blockchain.bin"))
+        public Blockchain(ILogger<Blockchain> logger)
         {
-            _logger.LogError("blockchain.bin is missing.");
-            SaveBlockchain();
-            GetStaticBlockchain();
+            _logger = logger;
+            _blockchain = new List<Block>();
+            _pendingBlocks = new List<Block>();
+            StartSaveTimer();
         }
 
-        using (var stream = File.Open("blockchain.bin", FileMode.Open))
+        public Block AddBlock(Block block)
+        {
+            var lastBlock = GetStaticBlockchain().LastOrDefault();
+            
+            block.PreviousHash = lastBlock == null ? "0" : lastBlock.Hash;
+
+            block.Hash = block.CalculateHash();
+            _pendingBlocks.Add(block);
+            return block;
+        }
+
+        public bool CheckIntegrity(List<Block> blockSample)
         {
             throw new NotImplementedException();
         }
-    }
 
-    public List<Block> GetStaticBlockchain(int indexStart, int indexStop)
-    {
-        throw new NotImplementedException();
-    }
-
-    
-    private void SaveBlockchain()
-    {
-        if (File.Exists("blockchain.bin"))
+        public List<Block> GetStaticBlockchain()
         {
-            // TODO: Save the blockchain with new block in the pusher
-            return;  
+            return LoadBlockchain();
         }
 
-        var safetyBlockchain = RebootBlockchain();
-        using (var stream = File.Create("blockchain.bin"))
+        public List<Block> GetStaticBlockchain(int indexStart, int indexStop)
         {
-            BinaryWriter binaryWriter = new BinaryWriter(stream);
-            binaryWriter.Write(safetyBlockchain);
+            throw new NotImplementedException();
         }
-    }
 
-    private byte[] RebootBlockchain()
-    {
-        throw new NotImplementedException();
-    }
-
-    private Block CreateGenesisBlock()
-    {
-        return new Block()
+        private void SaveBlockchain()
         {
-            PreviousHash = "0",
-            Content = new SimpleContentType()
+            try
             {
-                OwnerPK = "0"
-            },
-            CreatedAt = DateTime.Now
-        };
-    }
-    
-}
+                var number = _pendingBlocks.Count;
+                _logger.LogInformation($"{number} blocks are going to be included in the local blockchain.");
 
-public interface IBlockchain
-{
-    public Block AddBlock(Block block);
-    public bool CheckIntegrity(List<Block> blockSample);
-    public List<Block> GetStaticBlockchain();
-    public List<Block> GetStaticBlockchain(int indexStart, int indexStop);
+                _blockchain.AddRange(_pendingBlocks);
+                _pendingBlocks.Clear();
+
+                using (var stream = new FileStream("blockchain.bin", FileMode.Create))
+                using (var writer = new BinaryWriter(stream))
+                {
+                    
+                    foreach (var block in _blockchain)
+                    {
+                        writer.Write(block.Hash);
+                        writer.Write(block.PreviousHash);
+                        writer.Write(block.CreatedAt.Ticks);
+                        writer.Write(JsonSerializer.Serialize(block.Content));
+                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error saving blockchain: {ex.Message}");
+            }
+        }
+
+        private List<Block> LoadBlockchain()
+        {
+            var blockchain = new List<Block>();
+
+            try
+            {
+                if (File.Exists("blockchain.bin"))
+                {
+                    using (var stream = new FileStream("blockchain.bin", FileMode.Open))
+                    using (var reader = new BinaryReader(stream))
+                    {
+                        while (reader.BaseStream.Position != reader.BaseStream.Length)
+                        {
+                            var block = new Block
+                            {
+                                Hash = reader.ReadString(),
+                                PreviousHash = reader.ReadString(),
+                                CreatedAt = new DateTime(reader.ReadInt64()),
+                                Content = JsonSerializer.Deserialize<BaseContentType>(reader.ReadString())
+                            };
+                            blockchain.Add(block);
+                        }
+                    }
+                }
+                else
+                {
+                    _logger.LogError("Blockchain file not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error loading blockchain: {ex.Message}");
+            }
+
+            return blockchain;
+        }
+
+        private void StartSaveTimer()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    SaveBlockchain();
+                }
+            });
+        }
+    }
+
+    public interface IBlockchain
+    {
+        Block AddBlock(Block block);
+        bool CheckIntegrity(List<Block> blockSample);
+        List<Block> GetStaticBlockchain();
+        List<Block> GetStaticBlockchain(int indexStart, int indexStop);
+    }
 }
