@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
+using OAINet.Node.Blockchain;
 using OAINet.Node.RequestHandler;
 using OAINet.Node.Services.Blockchain;
 
@@ -19,9 +21,12 @@ public class Node
     private List<ExternalPeer> _connectedPeers;
     private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
     private readonly WalletService _walletService;
+    private readonly Blockchain.Blockchain _blockchain;
     public Node(ILogger<Node> logger,
-        WalletService walletService)
+        WalletService walletService,
+        Blockchain.Blockchain blockchain)
     {
+        _blockchain = blockchain;
         _logger = logger;
         _walletService = walletService;
         RegisterHandlers();
@@ -46,14 +51,26 @@ public class Node
     }
     public async Task RunNode()
     {
+        _peer = InitializeNode();
+        await AcceptRequest();
+        Console.ReadKey();
+    }
+
+    private Peer InitializeNode()
+    {
         _logger.LogInformation("server is preparing to run");
-        _peer = new Peer(new TcpClient(),
+        var peer = new Peer(new TcpClient(),
             new TcpListener(IPAddress.Any, 3024));
-        _peer.TcpListener.Start();
+        peer.TcpListener.Start();
         _connectedPeers = new List<ExternalPeer>();
         var host = Dns.GetHostEntry(Dns.GetHostName());
         var ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
         _logger.LogInformation("server is waiting external connexion in " + ipAddress.ToString());
+        return peer;
+    }
+
+    private async Task AcceptRequest()
+    {
         while (true)
         {
             try
@@ -74,7 +91,6 @@ public class Node
                 throw;
             }
         }
-        Console.ReadKey();
     }
 
     private async Task HandleClientAsync(ExternalPeer externalPeer)
