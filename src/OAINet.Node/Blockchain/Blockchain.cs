@@ -29,8 +29,9 @@ namespace OAINet.Node.Blockchain
             var lastBlock = GetStaticBlockchain().LastOrDefault();
             
             block.PreviousHash = lastBlock == null ? "0" : lastBlock.Hash;
-
+            block.CreatedAt = DateTime.Now;
             block.Hash = block.CalculateHash();
+            
             _pendingBlocks.Add(block);
             return block;
         }
@@ -123,7 +124,7 @@ namespace OAINet.Node.Blockchain
             {
                 while (true)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    await Task.Delay(TimeSpan.FromMinutes(5));
                     SaveBlockchain();
                 }
             });
