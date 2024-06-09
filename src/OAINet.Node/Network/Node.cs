@@ -51,16 +51,15 @@ public class Node
     }
     public async Task RunNode()
     {
-        _peer = InitializeNode();
+        _peer = InitializeNode(3024);
         await AcceptRequest();
         Console.ReadKey();
     }
-
-    private Peer InitializeNode()
+    private Peer InitializeNode(int port)
     {
         _logger.LogInformation("server is preparing to run");
         var peer = new Peer(new TcpClient(),
-            new TcpListener(IPAddress.Any, 3024));
+            new TcpListener(IPAddress.Any, port));
         peer.TcpListener.Start();
         _connectedPeers = new List<ExternalPeer>();
         var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -68,7 +67,6 @@ public class Node
         _logger.LogInformation("server is waiting external connexion in " + ipAddress.ToString());
         return peer;
     }
-
     private async Task AcceptRequest()
     {
         while (true)
@@ -92,30 +90,52 @@ public class Node
             }
         }
     }
-
     private async Task HandleClientAsync(ExternalPeer externalPeer)
     {
         var stream = externalPeer.Client.GetStream();
         var buffer = new byte[1024];
         var remoteEndPoint = externalPeer.Client.Client.RemoteEndPoint as IPEndPoint;
-        _logger.LogInformation($"client from {remoteEndPoint.Address.ToString()} is connected"); 
+        _logger.LogInformation($"client from {remoteEndPoint?.Address} is connected");
         int bytesRead;
         while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
         {
             var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             _logger.LogInformation("Received message: " + message);
-            var response = await HandleUriAsync(message);
+            var response = await HandleRequestAsync(message);
             await SendStringToAClientAsync(externalPeer, response);
         }
 
         await SendStringToAClientAsync(externalPeer, "bye");
         _connectedPeers.Remove(externalPeer);
         _logger.LogWarning($"{externalPeer} has left.");
-        
         externalPeer.Client.Close();
     }
-    
-    
+    private async Task<string> HandleRequestAsync(string requestData)
+    {
+        try
+        {
+            var request = RequestParser.Parse(requestData);
+            var uriHandler = new UriHandler(request.Uri);
+            Console.WriteLine(uriHandler.ToString());
+
+            if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
+            {
+                var (type, method) = handlerInfo;
+                var instance = Activator.CreateInstance(type);
+                var response = (string)method.Invoke(instance, new object[] { request });
+                return response;
+            }
+            else
+            {
+                return "Unknown command";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error handling request: {ex.Message}");
+            return "Error handling request: " + ex.Message;
+        }
+    }
     private async Task<string> HandleUriAsync(string uri)
     {
         try
