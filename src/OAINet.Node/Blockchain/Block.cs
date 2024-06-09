@@ -31,7 +31,25 @@ public class SimpleContentType : BaseContentType;
 
 public class TransactionContentType : BaseContentType
 {
+    public string FromPk { get; set; }
     public string TransactionHash { get; set; }
     public string AudiencePK { get; set; }
     public decimal TransactionSold { get; set; }
+    [NonSerialized]
+    private readonly DateTime CreatedAt;
+
+    public TransactionContentType()
+    {
+        CreatedAt = DateTime.Now;
+    }
+    
+    public string CalculateHash()
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            var rawData = $"{TransactionSold}{FromPk}{AudiencePK}{CreatedAt}";
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            return Convert.ToBase64String(bytes);
+        }
+    }
 }
