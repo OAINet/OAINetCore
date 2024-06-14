@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using OAINet.Node.Blockchain;
@@ -24,11 +25,17 @@ public class Node
     private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
     private readonly WalletService _walletService;
     private readonly Blockchain.Blockchain _blockchain;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly NodeContants _nodeContants;
     public Node(ILogger<Node> logger,
         WalletService walletService,
-        Blockchain.Blockchain blockchain)
+        Blockchain.Blockchain blockchain,
+        IServiceProvider serviceProvider,
+        NodeContants nodeContants)
     {
+        _nodeContants = nodeContants;
         _blockchain = blockchain;
+        _serviceProvider = serviceProvider;
         _logger = logger;
         _walletService = walletService;
         RegisterHandlers();
@@ -66,7 +73,7 @@ public class Node
     }
     private Peer InitializeNode()
     {
-        var isParse = int.TryParse(NodeContants.NodePort, out int port);
+        var isParse = int.TryParse(_nodeContants.NodePort, out int port);
         if (!isParse)
         {
             _logger.LogError("please, setup correctly oainet environment variables.");
@@ -147,7 +154,7 @@ public class Node
                 if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
                 {
                     var (type, method) = handlerInfo;
-                    var instance = Activator.CreateInstance(type);
+                    var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
                     var response = (string?)method.Invoke(instance, new object[] { request });
                     return response;
                 }
@@ -175,7 +182,7 @@ public class Node
                 if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
                 {
                     var (type, method) = handlerInfo;
-                    var instance = Activator.CreateInstance(type);
+                    var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
                     var response = (string?)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
                     return response;
                 }
