@@ -17,8 +17,8 @@ public record ExternalPeer(string Id, TcpClient Client);
 public class Node
 {
     private readonly ILogger<Node> _logger;
-    private Peer _peer;
-    private List<ExternalPeer> _connectedPeers;
+    private Peer? _peer;
+    private List<ExternalPeer?>? _connectedPeers;
     private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
     private readonly WalletService _walletService;
     private readonly Blockchain.Blockchain _blockchain;
@@ -61,21 +61,23 @@ public class Node
         var peer = new Peer(new TcpClient(),
             new TcpListener(IPAddress.Any, port));
         peer.TcpListener.Start();
-        _connectedPeers = new List<ExternalPeer>();
+        _connectedPeers = new List<ExternalPeer?>();
         var host = Dns.GetHostEntry(Dns.GetHostName());
         var ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-        _logger.LogInformation("server is waiting external connexion in " + ipAddress.ToString());
+        _logger.LogInformation("server is waiting external connexion in " + ipAddress?.ToString());
         return peer;
     }
     private async Task AcceptRequest()
     {
+        if (_peer is null) throw new NullReferenceException(nameof(_peer));
+        
         while (true)
         {
             try
             {
-                var client = await _peer.TcpListener.AcceptTcpClientAsync();
+                TcpClient? client = await _peer.TcpListener.AcceptTcpClientAsync();
                 var externalPeer = new ExternalPeer(Guid.NewGuid().ToString(), client);
-                _connectedPeers.Add(externalPeer);
+                _connectedPeers?.Add(externalPeer);
                 _ = HandleClientAsync(externalPeer);
             }
             catch (Exception e)
@@ -85,7 +87,7 @@ public class Node
                 _peer.TcpListener.Stop();
                 _peer.TcpListener.Dispose();
                 _peer.TcpClient.Dispose();
-                RunNode();
+                await RunNode();
                 throw;
             }
         }
@@ -99,30 +101,38 @@ public class Node
         int bytesRead;
         while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
         {
-            var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            string? message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             _logger.LogInformation("Received message: " + message);
-            var response = await HandleRequestAsync(message);
+            string? response = await HandleRequestAsync(message);
+            if (response is null)
+            {
+                throw new NullReferenceException(nameof(response));
+            }
             await SendStringToAClientAsync(externalPeer, response);
         }
 
         await SendStringToAClientAsync(externalPeer, "bye");
-        _connectedPeers.Remove(externalPeer);
+        _connectedPeers?.Remove(externalPeer);
         _logger.LogWarning($"{externalPeer} has left.");
         externalPeer.Client.Close();
     }
-    private async Task<string> HandleRequestAsync(string requestData)
+    private async Task<string?> HandleRequestAsync(string requestData)
     {
+        // Why async ? It's only computation, isn't it ?
         try
         {
             var request = RequestParser.Parse(requestData);
-            var uriHandler = new UriHandler(request.Uri);
+            string? uri = request.Uri;
+            if (uri is null) throw new NullReferenceException(nameof(uri));
+            
+            var uriHandler = new UriHandler(uri);
             Console.WriteLine(uriHandler.ToString());
 
             if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
             {
                 var (type, method) = handlerInfo;
                 var instance = Activator.CreateInstance(type);
-                var response = (string)method.Invoke(instance, new object[] { request });
+                var response = (string?)method.Invoke(instance, new object[] { request });
                 return response;
             }
             else
@@ -136,8 +146,9 @@ public class Node
             return "Error handling request: " + ex.Message;
         }
     }
-    private async Task<string> HandleUriAsync(string uri)
+    private async Task<string?> HandleUriAsync(string uri)
     {
+        // Why async ? It's only computation, isn't it ?
         try
         {
             var uriHandler = new UriHandler(uri);
@@ -147,7 +158,7 @@ public class Node
             {
                 var (type, method) = handlerInfo;
                 var instance = Activator.CreateInstance(type);
-                var response = (string)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
+                var response = (string?)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
                 return response;
             }
             else

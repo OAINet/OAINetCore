@@ -9,13 +9,15 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
-        var serviceCollection = new ServiceCollection();
+        ServiceCollection serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<Node>();
         serviceCollection.AddOAINetLogicalServices();
         serviceCollection.AddLogging(configure => configure.AddConsole())
             .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
-        var builder = serviceCollection.BuildServiceProvider();
-        var node = builder.GetService<Node>();
+        ServiceProvider builder = serviceCollection.BuildServiceProvider();
+
+        Node? node = builder.GetService<Node>();
+        if (node is null) throw new NullReferenceException(nameof(node));
         await node.RunNode();
     }
 }

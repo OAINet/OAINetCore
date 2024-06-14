@@ -23,6 +23,7 @@ public class TransactionService
         string To,
         decimal value)
     {
+        // Why async ? It's only computation, isn't it ?
         var result = _walletService.VerifySignature(walletCommunicationInformation);
         if (result != true)
         {
@@ -39,8 +40,8 @@ public class TransactionService
             }
         };
         block = _blockchain.AddBlock(block);
-        var contentType = (TransactionContentType)block.Content;
-        _logger.LogInformation($"{block.Hash} was push in the blockchain, he contain {contentType.TransactionHash} transaction.");
+        var contentType = (TransactionContentType?)block.Content;
+        _logger.LogInformation($"{block.Hash} was pushed in the blockchain, he contains the {contentType?.TransactionHash} transaction.");
     }
 }
 
