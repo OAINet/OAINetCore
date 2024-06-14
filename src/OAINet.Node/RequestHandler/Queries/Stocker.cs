@@ -3,8 +3,8 @@ namespace OAINet.Node.RequestHandler.Queries;
 public class Stocker
 {
     [OAINetHandler("hello")]
-    public string HandleWorld(string peerAdress)
+    public string HandleWorld(string peerAddress)
     {
-        return "world, " + peerAdress;
+        return "world, " + peerAddress;
     }
 }

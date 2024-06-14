@@ -61,12 +61,15 @@ namespace OAINet.Node.Blockchain
                 _blockchain.AddRange(_pendingBlocks);
                 _pendingBlocks.Clear();
 
+                // FIXME: Hardcoded file name
                 using (var stream = new FileStream("blockchain.bin", FileMode.Create))
                 using (var writer = new BinaryWriter(stream))
                 {
                     
-                    foreach (var block in _blockchain)
+                    foreach (Block block in _blockchain)
                     {
+                        if (block.Hash is null) throw new NullReferenceException(nameof(block.Hash));
+                        else if (block.PreviousHash is null) throw new NullReferenceException(nameof(block.PreviousHash));
                         writer.Write(block.Hash);
                         writer.Write(block.PreviousHash);
                         writer.Write(block.CreatedAt.Ticks);

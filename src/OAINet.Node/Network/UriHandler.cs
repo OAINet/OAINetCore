@@ -4,7 +4,7 @@ using System;
 
 public class UriHandler
 {
-    public string Protocol { get; }
+    public string? Protocol { get; }
     public string PeerAddress { get; }
     public string Command { get; }
 
