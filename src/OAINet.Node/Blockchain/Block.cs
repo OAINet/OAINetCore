@@ -14,7 +14,6 @@ public class Block
     public DateTime CreatedAt { get; set; }
     public string CalculateHash()
     {
-        // FIXME: Use HMAC instead of concatenation
         using (var sha256 = SHA256.Create())
         {
             var rawData = $"{PreviousHash}{CreatedAt}{JsonSerializer.Serialize(Content)}";
