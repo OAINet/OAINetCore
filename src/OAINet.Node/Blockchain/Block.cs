@@ -8,9 +8,9 @@ namespace OAINet.Node.Blockchain;
 [Serializable]
 public class Block
 {
-    public string Hash { get; set; }
-    public string PreviousHash { get; set; }
-    public BaseContentType Content { get; set; }
+    public string? Hash { get; set; }
+    public string? PreviousHash { get; set; }
+    public BaseContentType? Content { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CalculateHash()
     {
@@ -31,9 +31,9 @@ public class SimpleContentType : BaseContentType;
 
 public class TransactionContentType : BaseContentType
 {
-    public string FromPk { get; set; }
-    public string TransactionHash { get; set; }
-    public string AudiencePK { get; set; }
+    public string? FromPk { get; set; }
+    public string? TransactionHash { get; set; }
+    public string? AudiencePK { get; set; }
     public decimal TransactionSold { get; set; }
     [NonSerialized]
     private readonly DateTime CreatedAt;
