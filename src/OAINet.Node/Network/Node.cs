@@ -2,9 +2,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using OAINet.Node.Blockchain;
+using OAINet.Node.Environment;
 using OAINet.Node.RequestHandler;
 using OAINet.Node.Services.Blockchain;
 
@@ -51,12 +53,25 @@ public class Node
     }
     public async Task RunNode()
     {
-        _peer = InitializeNode(3024);
+        _peer = InitializeNode();
+        if (_peer == null)
+        {
+            _logger.LogInformation("the node cannot start.");
+            return;
+        }
+
+        NodePeerChecker();
         await AcceptRequest();
         Console.ReadKey();
     }
-    private Peer InitializeNode(int port)
+    private Peer InitializeNode()
     {
+        var isParse = int.TryParse(NodeContants.NodePort, out int port);
+        if (!isParse)
+        {
+            _logger.LogError("please, setup correctly oainet environment variables.");
+            return null;
+        }
         _logger.LogInformation("server is preparing to run");
         var peer = new Peer(new TcpClient(),
             new TcpListener(IPAddress.Any, port));
@@ -118,63 +133,81 @@ public class Node
     }
     private async Task<string?> HandleRequestAsync(string requestData)
     {
-        // Why async ? It's only computation, isn't it ?
-        try
+        return await Task.Run((() =>
         {
-            var request = RequestParser.Parse(requestData);
-            string? uri = request.Uri;
-            if (uri is null) throw new NullReferenceException(nameof(uri));
+            try
+            {
+                var request = RequestParser.Parse(requestData);
+                string? uri = request.Uri;
+                if (uri is null) throw new NullReferenceException(nameof(uri));
             
-            var uriHandler = new UriHandler(uri);
-            Console.WriteLine(uriHandler.ToString());
+                var uriHandler = new UriHandler(uri);
+                Console.WriteLine(uriHandler.ToString());
 
-            if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
-            {
-                var (type, method) = handlerInfo;
-                var instance = Activator.CreateInstance(type);
-                var response = (string?)method.Invoke(instance, new object[] { request });
-                return response;
+                if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
+                {
+                    var (type, method) = handlerInfo;
+                    var instance = Activator.CreateInstance(type);
+                    var response = (string?)method.Invoke(instance, new object[] { request });
+                    return response;
+                }
+                else
+                {
+                    return "Unknown command";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return "Unknown command";
+                _logger.LogError($"Error handling request: {ex.Message}");
+                return "Error handling request: " + ex.Message;
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error handling request: {ex.Message}");
-            return "Error handling request: " + ex.Message;
-        }
+        }));
     }
     private async Task<string?> HandleUriAsync(string uri)
     {
-        // Why async ? It's only computation, isn't it ?
-        try
+        return await Task.Run(() =>
         {
-            var uriHandler = new UriHandler(uri);
-            Console.WriteLine(uriHandler.ToString());
+            try
+            {
+                var uriHandler = new UriHandler(uri);
+                Console.WriteLine(uriHandler.ToString());
 
-            if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
-            {
-                var (type, method) = handlerInfo;
-                var instance = Activator.CreateInstance(type);
-                var response = (string?)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
-                return response;
+                if (handlers.TryGetValue(uriHandler.Command.ToLower(), out var handlerInfo))
+                {
+                    var (type, method) = handlerInfo;
+                    var instance = Activator.CreateInstance(type);
+                    var response = (string?)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
+                    return response;
+                }
+                else
+                {
+                    return "Unknown command";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return "Unknown command";
+                return "Error handling URI: " + ex.Message;
             }
-        }
-        catch (Exception ex)
-        {
-            return "Error handling URI: " + ex.Message;
-        }
+        });
     }
     private async Task SendStringToAClientAsync(ExternalPeer peer, string message)
     {
         var stream = peer.Client.GetStream();
         var buffer = Encoding.UTF8.GetBytes(message);
         await stream.WriteAsync(buffer, 0, buffer.Length);
+    }
+    private void NodePeerChecker()
+    {
+        Task.Run(async () =>
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1));
+                foreach (var peer in _connectedPeers)
+                {
+                    _logger.LogInformation(JsonSerializer.Serialize(peer));
+                }
+            }
+        });
     }
 }
