@@ -5,7 +5,7 @@ OAINet for OpenAINetwork, is an open and decentralized network to train AI model
 This project has many goals: 
 - To create a safe and performant plateform to train AI models.
 - To create a strong AI community. 
-- To grow the world of ia.
+- To grow the world of AI.
 
 ## Technologies used for the project 
 - .Net 7/8 with C#
