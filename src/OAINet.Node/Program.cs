@@ -12,6 +12,7 @@ public static class Program
         ServiceCollection serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<Node>();
         serviceCollection.AddOAINetLogicalServices();
+        serviceCollection.AddOAINetRequestHandlers();
         serviceCollection.AddLogging(configure => configure.AddConsole())
             .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
         ServiceProvider builder = serviceCollection.BuildServiceProvider();
