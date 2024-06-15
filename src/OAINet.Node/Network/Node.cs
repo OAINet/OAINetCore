@@ -43,8 +43,9 @@ public class Node
     private void RegisterHandlers()
     {
         var handlerTypes = Assembly.GetExecutingAssembly().GetTypes()
-            .Where(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Any(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0));
+            .Where(t => t.IsSubclassOf(typeof(RequestHandler.RequestHandler)) &&
+                        t.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                            .Any(m => m.GetCustomAttributes(typeof(OAINetHandlerAttribute), false).Length > 0));
 
         foreach (var type in handlerTypes)
         {
@@ -155,8 +156,8 @@ public class Node
                 {
                     var (type, method) = handlerInfo;
                     var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
-                    var response = (string?)method.Invoke(instance, new object[] { request });
-                    return response;
+                    var response = method.Invoke(instance, new object[] { request });
+                    return ResponseSerializer.Serialize(response);
                 }
                 else
                 {
