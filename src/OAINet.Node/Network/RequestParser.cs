@@ -1,19 +1,5 @@
 namespace OAINet.Node.Network;
 
-public class Request
-{
-    public string? Uri { get; set; }
-    public Dictionary<string, string> Parameters { get; set; } = new();
-    public List<ObjectParameter> Objects { get; set; } = new();
-}
-
-public class ObjectParameter
-{
-    public string? Name { get; set; }
-    public Dictionary<string, string> Properties { get; set; } = new();
-    public List<ObjectParameter> NestedObjects { get; set; } = new();
-}
-
 public class RequestParser
 {
     public static Request Parse(string requestData)
