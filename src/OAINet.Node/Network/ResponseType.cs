@@ -15,4 +15,18 @@ public static class ResponseType
             Stat = RequestStatus.NetSuccess
         };
     }
+    
+    public static OAINetResponse OAINetInvalidFormat(
+        this RequestHandler.RequestHandler requestHandler)
+    {
+        return new OAINetResponse()
+        {
+            ResponseAt = DateTime.Now,
+            ResponseContent = new
+            {
+                Message = "not good format."
+            },
+            Stat = RequestStatus.NetInvalidFormat
+        };
+    }
 }

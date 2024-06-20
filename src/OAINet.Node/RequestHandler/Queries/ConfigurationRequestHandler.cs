@@ -20,7 +20,14 @@ public class ConfigurationRequestHandler : RequestHandler
     [OAINetHandler("node/config/inf")]
     public OAINetResponse NodeConfiguration(Request request)
     {
-        return this.OAINetSucces(_nodeContants);
+        return this.OAINetSucces(new
+        {
+            NodeVersion = _nodeContants.OAINetProtocolVersion,
+            NodePort = _nodeContants.NodePort,
+            BlockchainInjectorTime = $"each {_nodeContants.BlockchainInjectorTimeInMinute} minute(s)."
+        });
     }
+    
+    
 }
 

@@ -15,6 +15,7 @@ namespace OAINet.Node.Blockchain
         private readonly ILogger<Blockchain> _logger;
         private List<Block> _blockchain;
         private List<Block> _pendingBlocks;
+        public List<Block> CurrentBlockchain { get; set; }
 
         public Blockchain(ILogger<Blockchain> logger)
         {
@@ -128,6 +129,7 @@ namespace OAINet.Node.Blockchain
                 while (true)
                 {
                     await Task.Delay(TimeSpan.FromMinutes(5));
+                    CurrentBlockchain = LoadBlockchain(); 
                     SaveBlockchain();
                 }
             });
