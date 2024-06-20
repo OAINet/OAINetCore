@@ -184,7 +184,7 @@ public class Node
                 {
                     var (type, method) = handlerInfo;
                     var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
-                    var response = (string?)method.Invoke(instance, new object[] { uriHandler.PeerAddress });
+                    var response = (string?)method.Invoke(instance, new object[] { });
                     return response;
                 }
                 else

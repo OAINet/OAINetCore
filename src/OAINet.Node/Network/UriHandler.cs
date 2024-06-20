@@ -5,7 +5,6 @@ using System;
 public class UriHandler
 {
     public string? Protocol { get; }
-    public string PeerAddress { get; }
     public string Command { get; }
 
     public UriHandler(string uri)
@@ -15,18 +14,17 @@ public class UriHandler
             throw new ArgumentException("Invalid URI protocol");
         }
 
-        var parts = uri.Substring("oainet://".Length).Split('/', 2);
-        if (parts.Length != 2)
+        var parts = uri.Substring("oainet://".Length).Split('/', 1);
+        if (parts.Length != 1)
         {
             throw new ArgumentException("Invalid URI format");
         }
-
-        PeerAddress = parts[0];
-        Command = parts[1];
+        
+        Command = parts[0];
     }
     
     public override string ToString()
     {
-        return $"Protocol: oainet, PeerAddress: {PeerAddress}, Command: {Command}";
+        return $"Protocol: oainet, Command: {Command}";
     }
 }
