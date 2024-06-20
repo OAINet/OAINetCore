@@ -29,4 +29,49 @@ public static class ResponseType
             Stat = RequestStatus.NetInvalidFormat
         };
     }
+    
+    public static OAINetResponse OAINetInternalError(
+        this RequestHandler.RequestHandler requestHandler,
+        Exception exception)
+    {
+        return new OAINetResponse()
+        {
+            ResponseAt = DateTime.Now,
+            ResponseContent = new
+            {
+                Message = exception.Message,
+            },
+            Stat = RequestStatus.NetInternalError
+        };
+    }
+    
+    public static OAINetResponse OAINetInternalError(
+        this RequestHandler.RequestHandler requestHandler,
+        string error)
+    {
+        return new OAINetResponse()
+        {
+            ResponseAt = DateTime.Now,
+            ResponseContent = new
+            {
+                Message = error
+            },
+            Stat = RequestStatus.NetInternalError
+        };
+    }
+    
+    public static OAINetResponse OAINetNotFound(
+        this RequestHandler.RequestHandler requestHandler,
+        string endpoint)
+    {
+        return new OAINetResponse()
+        {
+            ResponseAt = DateTime.Now,
+            ResponseContent = new
+            {
+                Message = endpoint + "is not support by the oainet protocol"
+            },
+            Stat = RequestStatus.NetNotFound
+        };
+    }
 }
