@@ -21,7 +21,7 @@ public class Node
 {
     private readonly ILogger<Node> _logger;
     private Peer? _peer;
-    private List<ExternalPeer?>? _connectedPeers;
+    private List<ExternalPeer>? _connectedPeers;
     private Dictionary<string, (Type, MethodInfo)> handlers = new Dictionary<string, (Type, MethodInfo)>();
     private readonly WalletService _walletService;
     private readonly Blockchain.Blockchain _blockchain;
@@ -40,6 +40,12 @@ public class Node
         _walletService = walletService;
         RegisterHandlers();
     }
+    
+    public List<ExternalPeer>? ConnectedPeers
+    {
+        get => _connectedPeers;
+    }
+    
     private void RegisterHandlers()
     {
         var handlerTypes = Assembly.GetExecutingAssembly().GetTypes()

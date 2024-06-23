@@ -10,7 +10,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         ServiceCollection serviceCollection = new ServiceCollection();
-        serviceCollection.AddTransient<Node>();
+        serviceCollection.AddSingleton<Node>();
         serviceCollection.AddOAINetLogicalServices();
         serviceCollection.AddOAINetRequestHandlers();
         serviceCollection.AddLogging(configure => configure.AddConsole())

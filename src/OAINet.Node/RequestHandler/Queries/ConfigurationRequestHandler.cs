@@ -7,14 +7,16 @@ namespace OAINet.Node.RequestHandler.Queries;
 public class ConfigurationRequestHandler : RequestHandler
 {
     private readonly Blockchain.Blockchain _blockchain;
+    private readonly Network.Node _node;
     private readonly NodeContants _nodeContants;
 
     public ConfigurationRequestHandler(NodeContants nodeContants, 
-        Blockchain.Blockchain blockchain)
+        Blockchain.Blockchain blockchain,
+        Network.Node node)
     {
         _blockchain = blockchain;
         _nodeContants = nodeContants;
-        
+        _node = node;
     }
 
     [OAINetHandler("node/config/inf")]
@@ -24,10 +26,9 @@ public class ConfigurationRequestHandler : RequestHandler
         {
             NodeVersion = _nodeContants.OAINetProtocolVersion,
             NodePort = _nodeContants.NodePort,
-            BlockchainInjectorTime = $"each {_nodeContants.BlockchainInjectorTimeInMinute} minute(s)."
+            BlockchainInjectorTime = $"each {_nodeContants.BlockchainInjectorTimeInMinute} minute(s).",
+            ConnectedPeer = _node.ConnectedPeers
         });
     }
-    
-    
 }
 
