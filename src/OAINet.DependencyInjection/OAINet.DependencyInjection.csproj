@@ -12,6 +12,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\OAINet.Common\OAINet.Common.csproj" />
+      <ProjectReference Include="..\OAINet.Protocol.HttpsProtocolSupport\OAINet.Protocol.HttpsProtocolSupport.csproj" />
+      <ProjectReference Include="..\OAINet.Protocol.RPCSupport\OAINet.Protocol.RPCSupport.csproj" />
+      <ProjectReference Include="..\OAINet.Protocol.WebSocketSupport\OAINet.Protocol.WebSocketSupport.csproj" />
     </ItemGroup>
 
 </Project>
