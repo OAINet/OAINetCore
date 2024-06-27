@@ -1,6 +1,6 @@
 using OAINet.Common.Interfaces;
 
-namespace OAINet.Protocol.WebSocketSupport;
+namespace Walfu.Protocol.WebSocketSupport;
 
 public class WebSocketProtocolSupport : IProtocolSupport
 {
