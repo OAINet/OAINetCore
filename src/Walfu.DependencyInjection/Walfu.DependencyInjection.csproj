@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>OAINet.DependencyInjection</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OAINet.Common\OAINet.Common.csproj" />
+      <ProjectReference Include="..\Walfu.Node.Logics\Walfu.Node.Logics.csproj" />
+      <ProjectReference Include="..\Walfu.Protocol.HttpsProtocolSupport\Walfu.Protocol.HttpsProtocolSupport.csproj" />
+      <ProjectReference Include="..\Walfu.Protocol.RPCSupport\Walfu.Protocol.RPCSupport.csproj" />
+      <ProjectReference Include="..\Walfu.Protocol.WebSocketSupport\Walfu.Protocol.WebSocketSupport.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-preview.5.24306.7" />
+    </ItemGroup>
+
+</Project>
