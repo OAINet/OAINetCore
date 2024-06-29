@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\OAINet.Common\OAINet.Common.csproj" />
+      <ProjectReference Include="..\Walfu.Common\Walfu.Common.csproj" />
     </ItemGroup>
 
 </Project>

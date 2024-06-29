@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using OAINet.Common.Interfaces;
+using Walfu.Common.Interfaces;
 
 namespace Walfu.Protocol.HttpsProtocolSupport;
 

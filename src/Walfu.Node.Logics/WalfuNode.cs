@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using OAINet.Common.Interfaces;
+using Walfu.Common.Interfaces;
 
 namespace Walfu.Node.Logics;
 

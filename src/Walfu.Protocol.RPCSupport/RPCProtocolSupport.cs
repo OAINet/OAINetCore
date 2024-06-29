@@ -1,6 +1,6 @@
+using Walfu.Common.Interfaces;
 
-
-namespace OAINet.Protocol.RPCSupport;
+namespace Walfu.Protocol.RPCSupport;
 
 public class RPCProtocolSupport : IProtocolSupport
 {

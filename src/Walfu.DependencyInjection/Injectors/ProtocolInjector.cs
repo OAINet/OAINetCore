@@ -1,9 +1,9 @@
 using System.Net.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
-using OAINet.Common.Interfaces;
+using Walfu.Common.Interfaces;
 using OAINet.DependencyInjection.Managers;
 using Walfu.Protocol.HttpsProtocolSupport;
-using OAINet.Protocol.RPCSupport;
+using Walfu.Protocol.RPCSupport;
 using Walfu.Protocol.WebSocketSupport;
 
 namespace OAINet.DependencyInjection.Injectors;

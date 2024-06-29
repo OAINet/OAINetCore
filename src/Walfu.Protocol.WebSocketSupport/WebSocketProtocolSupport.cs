@@ -1,4 +1,4 @@
-using OAINet.Common.Interfaces;
+using Walfu.Common.Interfaces;
 
 namespace Walfu.Protocol.WebSocketSupport;
 

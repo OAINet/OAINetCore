@@ -10,6 +10,7 @@
     <ItemGroup>
       <ProjectReference Include="..\OAINet.Common\OAINet.Common.csproj" />
       <ProjectReference Include="..\Walfu.Blockchain.Store\Walfu.Blockchain.Store.csproj" />
+      <ProjectReference Include="..\Walfu.Common\Walfu.Common.csproj" />
       <ProjectReference Include="..\Walfu.Node.Logics\Walfu.Node.Logics.csproj" />
       <ProjectReference Include="..\Walfu.Protocol.HttpsProtocolSupport\Walfu.Protocol.HttpsProtocolSupport.csproj" />
       <ProjectReference Include="..\Walfu.Protocol.RPCSupport\Walfu.Protocol.RPCSupport.csproj" />
